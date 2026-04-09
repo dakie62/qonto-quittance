@@ -1,0 +1,53 @@
+name: Check Rent Payments
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # Every day at 8:00 UTC (10:00 Paris)
+  workflow_dispatch: {} # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - name: Check for rent payments and send receipts
+        env:
+          QONTO_SLUG: ${{ secrets.QONTO_SLUG }}
+          QONTO_SECRET_KEY: ${{ secrets.QONTO_SECRET_KEY }}
+          QONTO_IBAN: ${{ secrets.QONTO_IBAN }}
+          TENANT_IBAN: ${{ secrets.TENANT_IBAN }}
+          RENT_AMOUNT: ${{ secrets.RENT_AMOUNT }}
+          TENANT_NAMES: ${{ secrets.TENANT_NAMES }}
+          TENANT_EMAILS: ${{ secrets.TENANT_EMAILS }}
+          LANDLORD_COMPANY_NAME: ${{ secrets.LANDLORD_COMPANY_NAME }}
+          LANDLORD_LEGAL_FORM: ${{ secrets.LANDLORD_LEGAL_FORM }}
+          LANDLORD_CAPITAL: ${{ secrets.LANDLORD_CAPITAL }}
+          LANDLORD_ADDRESS: ${{ secrets.LANDLORD_ADDRESS }}
+          LANDLORD_SIRET: ${{ secrets.LANDLORD_SIRET }}
+          LANDLORD_RCS: ${{ secrets.LANDLORD_RCS }}
+          LANDLORD_TVA: ${{ secrets.LANDLORD_TVA }}
+          LANDLORD_REPRESENTATIVE: ${{ secrets.LANDLORD_REPRESENTATIVE }}
+          LANDLORD_CITY: ${{ secrets.LANDLORD_CITY }}
+          PROPERTY_ADDRESS: ${{ secrets.PROPERTY_ADDRESS }}
+          PROPERTY_DESCRIPTION: ${{ secrets.PROPERTY_DESCRIPTION }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: npx tsx src/index.ts
+
+      - name: Persist processed transactions
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/processed.json
+          git diff --cached --quiet || git commit -m "chore: update processed transactions" && git push
