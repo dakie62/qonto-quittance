@@ -1,4 +1,4 @@
-# Qonto Quittance
+# Receipt-generation
 
 Génération automatique de quittances de loyer à partir des virements reçus sur [Qonto](https://qonto.com).
 
