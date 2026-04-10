@@ -16,6 +16,7 @@ export async function sendReceipt(
   await transporter.sendMail({
     from: `"${config.landlord.companyName}" <${config.gmail.user}>`,
     to: config.tenant.emails,
+    cc: config.gmail.user,
     subject: `Quittance de loyer — ${period}`,
     text: [
       "Madame, Monsieur,",
